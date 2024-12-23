@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
+//const RedisStore = require('connect-redis')(session);
 const redis = require('ioredis');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
@@ -11,7 +11,9 @@ const bodyParser = require('body-parser');
 const { rateLimiter } = require('./middlewares/rateLimiter');
 const authRoutes = require('./routes/authRoutes');
 const urlRoutes = require('./routes/urlRoutes');
+
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const RedisStore = require('connect-redis').default; // Use `.default` for the correct export
 
 // Load environment variables
 dotenv.config();
@@ -24,38 +26,52 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
+
+
+// Set up the session store
+// app.use(session({
+//   store: new RedisStore({
+//     host: 'localhost',  // or the Redis server you are using
+//     port: 6379,         // the Redis port
+//     // You can add other Redis options here as needed
+//   }),
+//   secret: 'your-secret-key',
+//   resave: false,
+//   saveUninitialized: false,
+// }));
+
+
 // Session and Redis Setup
-const redisClient = new redis({
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: process.env.REDIS_PORT || 6379,
-});
-app.use(
-  session({
-    store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+// const redisClient = new redis({
+//   host: process.env.REDIS_HOST || '127.0.0.1',
+//   port: process.env.REDIS_PORT || 6379,
+// });
+// app.use(
+//   session({
+//     store: new RedisStore({ client: redisClient }),
+//     secret: process.env.SESSION_SECRET || 'secret',
+//     resave: false,
+//     saveUninitialized: false,
+//   })
+// );
 
 // Passport Setup
-require('./utils/passportSetup');
-app.use(passport.initialize());
-app.use(passport.session());
+// require('./utils/passportSetup');
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect("mongodb://localhost:27017/shortUrl", {})
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.error('MongoDB Connection Error:', err));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/shorten', rateLimiter, urlRoutes);
-app.use('/api/analytics', analyticsRoutes);
+app.use('/auth', authRoutes);
+app.use('/shorten', urlRoutes);
+//app.use('/shorten', rateLimiter, urlRoutes);
+app.use('/analytics', analyticsRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

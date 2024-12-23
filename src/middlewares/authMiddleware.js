@@ -1,3 +1,6 @@
+
+  // src/middlewares/rateLimiter.js
+const rateLimit = require('express-rate-limit');
 const authenticateUser = (req, res, next) => {
     if (req.isAuthenticated()) {
       return next();
@@ -5,10 +8,9 @@ const authenticateUser = (req, res, next) => {
     res.status(401).json({ error: 'Unauthorized' });
   };
   
-  module.exports = { authenticateUser };
+
   
-  // src/middlewares/rateLimiter.js
-  const rateLimit = require('express-rate-limit');
+  module.exports = { authenticateUser };
   
   const rateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

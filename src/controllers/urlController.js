@@ -2,29 +2,35 @@ const ShortURL = require('../models/ShortURL');
 const Analytics = require('../models/Analytics');
 
 exports.createShortUrl = async (req, res) => {
+  console.log('Request Body:', req.body);
   try {
     const { longUrl, customAlias, topic } = req.body;
-    const shortUrl = customAlias || undefined;
     const newUrl = await ShortURL.create({
       longUrl,
-      customAlias: shortUrl,
+      customAlias: customAlias || undefined,
       topic,
-      createdBy: req.user.id,
+      createdBy: req.user ? req.user.id : null,
     });
-    res.status(201).json({
-      shortUrl: newUrl.shortUrl,
-      createdAt: newUrl.createdAt,
-    });
+    console.log('New URL:', newUrl);
+    res.status(201).json(newUrl);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error:', error.message);
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.redirectShortUrl = async (req, res) => {
   try {
     const { alias } = req.params;
-    const url = await ShortURL.findOne({ shortUrl: alias });
-    if (!url) return res.status(404).json({ error: 'URL not found' });
+
+    const url = await ShortURL.findOne({
+      $or: [{ customAlias: alias }, { _id: alias }],
+    });
+
+    if (!url) {
+      return res.status(404).json({ error: 'URL not found' });
+    }
 
     // Log analytics
     await Analytics.create({

@@ -22,3 +22,7 @@ url-shortener/
 ├── Dockerfile
 ├── swagger.json
 └── package.json
+
+//git add .
+// git commit -m "commit"
+//git push origin master

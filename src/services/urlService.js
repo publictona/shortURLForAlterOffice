@@ -1,4 +1,4 @@
-const ShortUrl = require('../models/ShortUrl');
+const ShortUrl = require('../models/ShortURL');
 const crypto = require('crypto');
 
 const generateAlias = () => crypto.randomBytes(4).toString('hex');
