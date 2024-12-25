@@ -1,4 +1,5 @@
 const express = require('express');
+const app = express();
 const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
@@ -11,14 +12,24 @@ const bodyParser = require('body-parser');
 const { rateLimiter } = require('./middlewares/rateLimiter');
 const authRoutes = require('./routes/authRoutes');
 const urlRoutes = require('./routes/urlRoutes');
-
+const userRoutes = require('./routes/userRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+
 const RedisStore = require('connect-redis').default; // Use `.default` for the correct export
+
+
+app.use(cors());
+
+//swagger
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 // Load environment variables
 dotenv.config();
 
-const app = express();
+
 
 // Middleware
 app.use(helmet());
@@ -70,8 +81,9 @@ mongoose
 // Routes
 app.use('/auth', authRoutes);
 app.use('/shorten', urlRoutes);
-//app.use('/shorten', rateLimiter, urlRoutes);
 app.use('/analytics', analyticsRoutes);
+app.use('/user', userRoutes);
+//app.use('/shorten', rateLimiter, urlRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
